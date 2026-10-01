@@ -1,90 +1,197 @@
-# FoodBridge - AI-Enabled Free Food Redistribution Platform
+# FoodBridge
 
-FoodBridge is a B.Tech final-year full-stack project that connects surplus food donors with NGOs, orphanages, and volunteers.
+> **Connecting Surplus Food with Those Who Need It Most.**
 
-## Features
-- React + Vite frontend
-- Node.js + Express backend
-- MongoDB + Mongoose data models
-- JWT authentication and role-based access
-- Donation, request, matching, delivery, notifications, ratings, rewards
-- FastAPI AI matching service with explainable scoring
-- Leaflet + OpenStreetMap maps
-- Demo seed data and simple fallback behavior for optional services
+A smart food redistribution platform that connects donors, restaurants, function organizers, NGOs, orphanages, volunteers, and administrators to reduce food waste and distribute meals to people in need.
 
-## Folder Structure
-- `client/` - React frontend
-- `server/` - Express API
-- `ai-service/` - FastAPI scoring service
-- `docs/` - Short technical documentation
+---
 
-## Requirements
+## Tech Stack
+
+| Layer     | Technology                          |
+|-----------|-------------------------------------|
+| Frontend  | Next.js 14 (App Router), TypeScript, Tailwind CSS |
+| Backend   | FastAPI (Python) — optional API layer |
+| Database  | Supabase (PostgreSQL)               |
+| Auth      | Supabase Auth (email/password, Google OAuth, JWT) |
+| Charts    | Recharts                            |
+| Icons     | Lucide React                        |
+
+---
+
+## Project Structure
+
+```
+food-donation/
+├── frontend/                 # Next.js 14 application
+│   ├── app/                  # App Router pages
+│   │   ├── (auth)/           # Login, Register
+│   │   ├── (dashboard)/      # Role-based dashboards
+│   │   │   ├── donor/        # Donor dashboard, donate form, donation details
+│   │   │   ├── ngo/          # NGO dashboard, request form, emergency form
+│   │   │   ├── volunteer/    # Volunteer dashboard, delivery details, tracking
+│   │   │   ├── admin/        # Admin dashboard, user/donation/emergency management
+│   │   │   ├── profile/      # User profile
+│   │   │   ├── notifications/# Notification feed
+│   │   │   └── history/      # History with tabs
+│   │   └── page.tsx          # Landing page
+│   ├── components/           # Reusable UI components
+│   ├── lib/                  # API client, types, utilities
+│   └── ...
+├── backend/                  # FastAPI application
+│   ├── app/
+│   │   ├── routers/          # API route handlers
+│   │   ├── auth.py           # Supabase Auth integration
+│   │   ├── schemas.py        # Pydantic schemas
+│   │   ├── database.py       # Supabase client
+│   │   ├── config.py         # Settings
+│   │   ├── seed.py           # Sample data seeder
+│   │   └── main.py           # FastAPI app entry
+│   ├── schema.sql            # Supabase schema + seed
+│   ├── requirements.txt
+│   └── Dockerfile
+└── README.md
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+
 - Node.js 18+
-- MongoDB Atlas or local MongoDB
-- Python 3.10+
+- Python 3.11+
+- A [Supabase](https://supabase.com) project (the repo ships with project credentials in `.env.example`)
 
-## Setup
-1. Install dependencies: `npm install`
-2. Copy `server/.env.example` to `server/.env`
-3. Copy `client/.env.example` to `client/.env`
-4. Optionally copy `ai-service/.env` if you add extra config later
+### 1. Database Setup (Supabase)
 
-## Environment Variables
-### Server
-- `PORT=5000`
-- `MONGODB_URI=`
-- `JWT_SECRET=`
-- `JWT_EXPIRES_IN=7d`
-- `CLIENT_URL=http://localhost:5173`
-- `AI_SERVICE_URL=http://localhost:8000`
-- `CORS_ORIGIN=http://localhost:5173`
-- `CLOUDINARY_CLOUD_NAME=`
-- `CLOUDINARY_API_KEY=`
-- `CLOUDINARY_API_SECRET=`
+Open your Supabase project → **SQL Editor** → paste and run `backend/schema.sql`.
 
-### Client
-- `VITE_API_URL=http://localhost:5000/api`
-- `VITE_AI_SERVICE_URL=http://localhost:8000`
+This creates all tables (`users`, `donations`, `requests`, `emergency_requests`, `deliveries`, `notifications`), enums, indexes, row-level security policies, and sample seed rows — **including the Supabase Auth accounts** for the five demo users below, so they can sign in immediately with `Password@123`.
 
-## Run
-- Frontend: `npm run dev --workspace client`
-- Backend: `npm run dev --workspace server`
-- AI service: `uvicorn app:app --reload --port 8000` inside `ai-service/`
+> The script is safe to re-run: every step is guarded with `ON CONFLICT DO NOTHING` / exception notices, so re-executing it never fails or duplicates data.
 
-## Seed Demo Data
-- Backend seed script: `node scripts/seed.js` inside `server/`
-- Demo password: `Demo@12345`
+> The frontend talks to Supabase directly for auth and data — no backend required to run the UI.
 
-## Demo Credentials
-- `admin@foodbridge.demo`
-- `donor@foodbridge.demo`
-- `volunteer@foodbridge.demo`
-- `ngo@foodbridge.demo`
-- `orphanage@foodbridge.demo`
+### 2. Frontend Setup
 
-## Key API Endpoints
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `GET /api/auth/me`
-- `POST /api/donations`
-- `POST /api/requests`
-- `POST /api/matches/generate`
-- `POST /api/deliveries/:id/verify`
-- `GET /api/analytics/overview`
-- `GET /api/admin/dashboard`
+```bash
+cd frontend
+npm install
+cp .env.local.example .env.local
+```
 
-## AI Matching
-The AI service returns an explainable score from 0 to 100 using distance, freshness, quantity fit, urgency, food type, and timing.
-If the AI service is unavailable, the backend uses a local fallback scorer so the app still works.
+`.env.local`:
 
-## Deployment
-- Frontend: Vercel
-- Backend: Render
-- AI service: Render or any Python host
+```
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_SUPABASE_URL=https://nbvvvqcjzxittnzoxmbr.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+```
 
-## Future Scope
-- Better map routing
-- Push notifications with Firebase Cloud Messaging
-- Real image storage with Cloudinary
-- More detailed analytics charts
-- Stronger recommendation models
+```bash
+npm run dev
+```
+
+App available at `http://localhost:3000`
+
+### 3. Backend Setup (optional API layer)
+
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload --port 8000
+```
+
+API docs available at `http://localhost:8000/docs`
+
+### 4. Seed Sample Data (optional)
+
+`schema.sql` already seeds everything. To re-seed or add more data through the Supabase admin API (creates/updates auth users + profiles + sample content):
+
+```bash
+cd backend
+python -m app.seed
+```
+
+---
+
+## User Roles & Credentials (Seeded)
+
+| Role       | Email                  | Password      |
+|------------|------------------------|---------------|
+| Donor      | donor@foodbridge.com   | Password@123  |
+| NGO        | ngo@foodbridge.com     | Password@123  |
+| Volunteer  | volunteer@foodbridge.com | Password@123 |
+| Admin      | admin@foodbridge.com   | Password@123  |
+
+---
+
+## Core Flows
+
+### Donation Flow
+Login → Dashboard → Donate Food → Food Details → Safety Details → Location → Matching → Confirmation → Tracking → Completed
+
+### Normal Request Flow
+Login → NGO Dashboard → Request Food → Enter Details → Nearby Donations → Accept Donation → Volunteer Delivery → Confirmation
+
+### Emergency Flow
+NGO Dashboard → Emergency Food Request → Required Meals → Submit → Notify Nearby Donors and Volunteers → Donor Accepts → Volunteer Assigned → Live Tracking → Delivery Confirmation
+
+### Volunteer Flow
+Login → Volunteer Dashboard → Nearby Deliveries → Accept → Pickup → Start Delivery → Live Tracking → Delivered → Verification
+
+---
+
+## API Endpoints
+
+| Method | Endpoint                          | Description              |
+|--------|-----------------------------------|--------------------------|
+| POST   | /api/auth/register                | Register new user        |
+| POST   | /api/auth/login                   | Login                    |
+| GET    | /api/auth/profile                 | Get current user         |
+| GET    | /api/donations                    | List donations           |
+| POST   | /api/donations                    | Create donation          |
+| GET    | /api/donations/nearby             | Nearby donations         |
+| GET    | /api/requests                     | List food requests       |
+| POST   | /api/requests                     | Create food request      |
+| GET    | /api/emergency/active             | Active emergency requests|
+| POST   | /api/emergency                    | Create emergency request |
+| GET    | /api/deliveries                   | List deliveries          |
+| PUT    | /api/deliveries/{id}/status       | Update delivery status   |
+| GET    | /api/admin/stats                  | Admin dashboard stats    |
+| GET    | /api/admin/users                  | List all users           |
+| GET    | /api/impact                       | Impact statistics        |
+| GET    | /api/notifications                | User notifications       |
+
+---
+
+## Design System
+
+| Token           | Value     | Usage                    |
+|-----------------|-----------|--------------------------|
+| Primary         | `#16A34A` | Brand, CTAs, active      |
+| Primary Dark    | `#166534` | Headings, hover states   |
+| Primary Light   | `#DCFCE7` | Backgrounds, badges     |
+| Warning         | `#F59E0B` | Pending states           |
+| Danger          | `#DC2626` | Urgent, emergency        |
+| Info            | `#2563EB` | Informational            |
+| Background      | `#F8FAFC` | Page background          |
+| Surface         | `#FFFFFF` | Cards, panels            |
+| Text            | `#0F172A` | Primary text             |
+| Text Secondary  | `#64748B` | Secondary text           |
+| Border          | `#E2E8F0` | Borders, dividers        |
+
+**Typography:** Inter (Google Fonts)
+**Spacing:** 8px base unit
+**Border Radius:** 12-16px
+**Shadows:** Soft, subtle
+
+---
+
+## License
+
+MIT

@@ -1,19 +1,34 @@
-node_modules
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Environment
 .env
-.env.*
-!.env.example
-client/dist
-server/uploads
-server/tmp
-server/coverage
-server/.nyc_output
-server/jest-report
-server/.cache
-ai-service/__pycache__
-ai-service/.venv
-ai-service/model/*.joblib
-ai-service/model/*.pkl
-ai-service/model/*.model
+.env.local
+.env.*.local
+
+# Build
+.next/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
 Thumbs.db
+
+# Logs
 *.log
+npm-debug.log*
+
+# Misc
+*.tsbuildinfo
+next-env.d.ts
